@@ -252,6 +252,10 @@ const authActor = createAuthActor();
 
 const query = queryString.parse(window.location.search);
 
+let initialMachine = examples.basic
+if (examples.authMachine) initialMachine = examples.authMachine
+if (query.machine) initialMachine = examples[query.machine]
+
 const appMachine = Machine<AppMachineContext>(
   {
     id: 'app',
@@ -613,7 +617,7 @@ export function App() {
         ) : (
           <>
             <StateChart
-              machine={current.context.machine}
+              machine={initialMachine}
               onSave={code => {
                 send('GIST.SAVE', { code });
               }}
