@@ -1,10 +1,12 @@
+/**
+ * Reads the contents of all state machines defined in the
+ * public/machines directory, and generates an examples.ts
+ * file suitable for consumption by Xstate-viz
+ */
+
 const fs = require('fs')
 const path = require('path')
 const ejs = require('ejs')
-
-// const file = fs.readFile(path.join(__dirname, '../machines/authMachine.js'), 'utf8', (err, doc) => {
-//   console.log(doc)
-// })
 
 const machinesPath = path.resolve(__dirname, '..', 'machines')
 const templateFileName = 'machinesAsStrings.ejs'
@@ -15,7 +17,7 @@ const outputFileName = 'examples.ts'
 const outputFilePath = path.resolve(outputPath, outputFileName)
 
 /**
- * @description Read files synchronously from a folder, with natural sorting
+ * @description Read files synchronously from a folder, with natural sorting,
  * @param {String} dir Absolute path to directory
  * @returns {Object[]} List of object, each object represent a file
  * structured like so: `{ filepath, name, ext, stat }`
@@ -35,13 +37,7 @@ function readFilesSync (dir) {
     const stat = fs.statSync(filepath)
     const isFile = stat.isFile()
     const content = fs.readFileSync(filepath, 'utf8')
-    const machineRegexp = content.match(/(?<machinedefn>Machine\({[\s\S]+}\))/)
-    const renderedContent = ejs.render(
-      '<%- name %>: `<%- machine %>`',
-      { name: name, machine: machineRegexp.groups.machinedefn }
-    )
-
-    if (isFile) files.push({ filepath, name, ext, stat, content, renderedContent })
+    if (isFile) files.push({ filepath, name, ext, stat, content })
   })
 
   files.sort((a, b) => {
@@ -53,16 +49,49 @@ function readFilesSync (dir) {
   return files
 }
 
+/**
+ * @description Generate an array of strings to pass to a template
+ * @param files
+ * @returns Array[]
+ */
+function generateStateMachineTemplateStrings(files){
+  const machineStrings = []
+  files.forEach(file => {
+    const machineRegexp = file.content.match(/(?<machinedefn>Machine\({[\s\S]+}\))/)
+    const renderedContent = ejs.render(
+        '<%- name %>: `<%- machine %>`',
+        { name: file.name, machine: machineRegexp.groups.machinedefn }
+    )
+    machineStrings.push(renderedContent)
+  })
+
+  return machineStrings
+}
+
 const files = readFilesSync(machinesPath)
 
 // console.log(files)
 
 const templateString = fs.readFileSync(templateFilePath, 'utf8')
 
-const machineStrings = files.map(file => file.renderedContent)
+/**
+ * Map over the files array and generate another array of strings
+ * which contain variable definitions, suitable to be templated out
+ * into a file that Xstate-viz can consume
+ */
+const machineStrings = files.map(file => {
+  const machineRegexp = file.content.match(/(?<machinedefn>Machine\({[\s\S]+}\))/)
+  const renderedContent = ejs.render(
+      '<%- name %>: `<%- machine %>`',
+      { name: file.name, machine: machineRegexp.groups.machinedefn }
+  )
 
+  return renderedContent
+})
+
+/**
+ * Render the examples file for Xstate-viz
+ */
 const renderedTemplate = ejs.render(templateString, { machineStrings })
 
 fs.writeFileSync(outputFilePath, renderedTemplate, 'utf8')
-
-// console.log(renderedTemplate)
