@@ -11,7 +11,7 @@
     "build:watch": "tsc -w",
     "prepublishOnly": "tsc",
     "develop": "npm link && concurrently \"tsc -w\" \"cd public && npm link @statecharts/xstate-viz && npm start\"",
-    "link": "npm link && concurrently \"tsc -w\" \"cd public && npm link @statecharts/xstate-viz\"",
+    "link": "npm link && concurrently \"tsc\" \"cd public && npm link @statecharts/xstate-viz\"",
     "deploy": "cd public && npm run deploy"
   },
   "files": [
