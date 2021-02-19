@@ -2,7 +2,7 @@
   "name": "xstate-viz-site",
   "version": "0.1.0",
   "private": true,
-  "homepage": "https://xstate.js.org/viz",
+  "homepage": "",
   "dependencies": {
     "@statecharts/xstate-viz": "^0.3.0",
     "@types/jest": "23.3.9",
